@@ -26,7 +26,7 @@ export const useDeepgram = () => {
       // Show user-friendly error message
     }
   }
-  const deepgram = new Deepgram('3b4bea0a0ca3061f1769313729b6927ae062dfca')
+  const deepgram = new Deepgram('f4573859dbdff8d909ff6e3708e6f1ff2996ac90')
   const transcribe = (key: string | null) => {
     setKey(key)
     setTranscript([])
