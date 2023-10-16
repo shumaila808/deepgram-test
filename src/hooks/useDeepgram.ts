@@ -26,37 +26,55 @@ export const useDeepgram = () => {
       // Show user-friendly error message
     }
   }
-  const deepgram = new Deepgram('f4573859dbdff8d909ff6e3708e6f1ff2996ac90')
+  const deepgram = new Deepgram('3b4bea0a0ca3061f1769313729b6927ae062dfca')
   const transcribe = (key: string | null) => {
     setKey(key)
     setTranscript([])
     if (audioStream) mediaRecorderRef.current = new MediaRecorder(audioStream)
+    else {
+
+    }
     const deepgramSocket = deepgram.transcription.live({
       interim_results: true,
       endpointing: 250,
       model: 'nova', // Best variant with limited speech issues
-      // language: 'es'
-      language: 'en-IN'
- 
+      language: sessionStorage.getItem('language') ? sessionStorage.getItem('language') : 'en-GB',
     })
-    deepgramSocket.addEventListener('open', () => console.log('dg onopen'))
     deepgramSocket.addEventListener('error', (error: any) => {
-      console.log('dg error', { error })
-      sessionStorage.setItem('url', 'deepgram')
+     alert("error")
+     console.log(error)
     })
 
     setWebSocket(deepgramSocket)
 
     // Open Listener
     deepgramSocket.addEventListener('open', () => {
+     
       mediaRecorderRef.current!.addEventListener('dataavailable', async (event: any) => {
         if (event.data.size > 0 && deepgramSocket.readyState == 1) {
           deepgramSocket.send(event.data)
+        } else {
+          if (deepgramSocket.readyState === 3) {
+            alert("state 3")
+            mediaRecorderRef.current?.stop()
+            deepgramSocket.close()
+            setTimeout(() => {
+              transcribe(key) // Retry the connection
+            }, 5000) // Set an appropriate retry delay
+            return
+          }
         }
       })
       mediaRecorderRef.current?.start(250)
       setisTranscribing(true)
     })
+
+    // close
+    deepgramSocket.addEventListener('close', () => {
+      alert("closing")
+    })
+
+    // error
 
     // Message Listener
     deepgramSocket.addEventListener('message', (message: { data: string }) => {
@@ -93,20 +111,20 @@ export const useDeepgram = () => {
     setEmptyPacketCounter(0)
     mediaRecorderRef.current?.stop()
     webSocket.close()
+   
   }
 
   useEffect(() => {
     // if user has answered and we get an empty event after that : end of speech
-    if (isAnswered && emptyPacketCounter == 3 && key == '1') {
+    if (isAnswered && emptyPacketCounter >= 3 && key == '1') {
       if (transcript.length > 0) {
-       
+        
         closeConnection()
       } else {
-       
+        
       }
     } else {
       
-      return
     }
   }, [isAnswered, transcript, emptyPacketCounter, key])
   useEffect(() => {
