@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react'
 // @ts-ignore
 import { Deepgram } from '@deepgram/sdk/browser'
+import { count } from 'console'
 
 export const useDeepgram = () => {
   const [audioStream, setaudioStream] = useState<MediaStream>()
@@ -15,6 +16,7 @@ export const useDeepgram = () => {
   const [startTime, setstartTime] = useState<any>(null)
   const [isDeepgramReady, setIsDeepgramReady] = useState(false)
   const [key, setKey] = useState<string | null>(null)
+  const [counter , setCounter] = useState<number>(0)
 
   const initAudioStream = async () => {
     try {
@@ -138,6 +140,10 @@ export const useDeepgram = () => {
       }
     }
   }, [])
+  useEffect(()=>{
+    setCounter(counter+1);
+    sessionStorage.setItem("deepGramCount", counter.toString());
+  })
   return {
     transcript,
     transcribe,
